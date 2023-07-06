@@ -1,0 +1,1901 @@
+---
+title: "SHUTi CARE Descriptives"
+author: "Kelly Shaffer"
+date: "3/19/23"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+##Environment set-up
+```{r}
+setwd("Z:/Research/Psychiatry and NB Sciences/PSYCH_eHealth/Kelly's Data/00. NCATS/Data & Analyses/Quantitative - Qualtrics")
+getwd()
+
+#install.packages('tidyverse')
+#install.packages('Hmisc')
+#install.packages('car')
+#install.packages('ltm')
+
+library(Hmisc)
+library(car)
+library(ltm)
+library(tidyverse)
+```
+
+
+##Data import & management
+Baseline
+```{r}
+#Import data for continuous variables
+baseline.number<-read.csv("SHUTi-CARE_Baseline_Final numeric_2023 01 18_deid.csv")
+baseline.number<-as.data.frame(baseline.number)
+
+#Rename continuous variables
+baseline.number<-baseline.number %>%
+rename('QDuration (in seconds)' = 'Duration..in.seconds.',
+QRecordedDate=RecordedDate,
+QResponseId=ResponseId,
+age=Q1.1,
+total_CR=Q160,
+CR_age=Q191,
+care_duration_y=Q1.14_1,
+care_duration_m=Q1.14_2,
+overload1=Q3.1_1,
+overload2=Q3.1_2,
+overload3=Q3.1_3,
+overload4=Q3.1_4,
+cgefficacy1=Q3.2_1,
+cgefficacy2=Q3.2_2,
+cgefficacy3=Q3.3_1,
+cgefficacy4=Q3.3_2,
+guilt_selfcare1=Q164_1,
+guilt_dowrong1=Q164_2,
+guilt_notrise1=Q164_3,
+guilt_notrise2=Q164_4,
+guilt_selfcare2=Q164_5,
+guilt_dowrong2=Q164_6,
+guilt_notrise3=Q164_7,
+guilt_dowrong3=Q164_8,
+guilt_dowrong4=Q164_9,
+guilt_dowrong5=Q164_10,
+guilt_notrise4=Q164_11,
+guilt_dowrong6=Q164_12,
+guilt_selfcare3=Q164_13,
+guilt_selfcare4=Q164_14,
+guilt_dowrong7=Q164_15,
+guilt_notrise5=Q164_16,
+guilt_notrise6=Q164_17,
+adl_bowels=Q175,
+adl_bladder=Q176,
+adl_grooming=Q177,
+adl_toilet=Q178,
+adl_feeding=Q179,
+adl_transfer=Q180,
+adl_mobility=Q181,
+adl_dressing=Q182.1,
+adl_stairs=Q183,
+adl_bathing=Q184.2,
+pss_cognitive1=Q166_1,
+pss_cognitive2=Q166_2,
+pss_cognitive3=Q166_3,
+pss_cognitive4=Q166_4,
+pss_cognitive5=Q166_5,
+pss_cognitive6=Q166_6,
+pss_cognitive7=Q166_7,
+pss_cognitive8=Q166_8,
+pss_behavior1=Q167_1,
+pss_behavior2=Q167_2,
+pss_behavior3=Q167_3,
+pss_behavior4=Q167_4,
+pss_behavior5=Q167_5,
+pss_behavior6=Q167_6,
+pss_behavior7=Q167_7,
+pss_behavior8=Q167_8,
+pss_behavior9=Q167_9,
+pss_behavior10=Q167_10,
+pss_behavior11=Q167_11,
+pss_behavior12=Q167_12,
+pss_behavior13=Q167_13,
+pss_behavior14=Q167_14,
+adl_tasks=Q170,
+iadl_tasks=Q172,
+med_nursing_tasks=Q174,
+isi_2=Q5.6,
+isi_3=Q5.7,
+dbas_1=Q5.11,
+dbas_2=Q5.12,
+dbas_3=Q5.13,
+dbas_4=Q5.14,
+dbas_5=Q5.15,
+dbas_6=Q5.16,
+dbas_7=Q5.17,
+dbas_8=Q5.18,
+dbas_9=Q5.19,
+dbas_10=Q5.20,
+dbas_11=Q5.21,
+dbas_12=Q5.22,
+dbas_13=Q5.23,
+dbas_14=Q5.24,
+dbas_15=Q5.25,
+dbas_16=Q5.26,
+sloc1=Q5.29_1,
+sloc2=Q5.29_2,
+sloc3=Q5.29_3,
+sloc4=Q5.29_4,
+sloc5=Q5.29_5,
+sloc6=Q5.29_6,
+sloc7=Q5.29_7,
+sloc8=Q5.29_8,
+sleep_diff_precg=Q193,
+sleep_diff_bc_cg=Q194,
+promis_physhealth1=Q185,
+promis_physhealth2=Q186,
+phq4_1=Q189_1,
+phq4_2=Q189_2,
+phq4_3=Q189_3,
+phq4_4=Q189_4,
+complete=Q195)
+
+##Import data for ordinal variables
+baseline.ordinal<-read.csv("SHUTi-CARE_Baseline_Final text_2023 01 18_deid.csv")
+baseline.ordinal<-as.data.frame(baseline.ordinal)
+
+##Rename ordinal variables
+baseline.ordinal<-baseline.ordinal %>%
+rename(gender=Q1.2,
+gender_other=Q1.2_3_TEXT,
+sex=Q190,
+race=Q182,
+race_other=Q182_6_TEXT,
+ethnicity=Q184,
+work=Q1.4,
+work_other=Q1.4_9_TEXT,
+income=Q1.5,
+education=Q184.1,
+income_perceived=Q1.6,
+health_literacy=Q1.8,
+CR_relationship=Q1.10,
+CR_relationship_other=Q1.10_14_TEXT,
+CR_live=Q1.11,
+CR_same_room=Q1.12,
+CR_other_live=Q163,
+CR_other_live_other=Q163_9_TEXT,
+CR_condition=Q1.13,
+Quuid=uuid)
+
+#Merge datasets
+baseline.number<-baseline.number %>% 
+  dplyr::select(-starts_with("Q"))
+baseline.ordinal<-baseline.ordinal %>% 
+  dplyr::select(-starts_with("Q"))
+
+baseline<- merge(baseline.ordinal, baseline.number, by.x = "PID", by.y = "PID", all = TRUE)
+rm(baseline.number, baseline.ordinal)
+```
+
+
+Post-A User 
+```{r}
+#Import data for continuous variables
+postuser.number<-read.csv("SHUTi-CARE_Post (User)_Final numeric_2023 03 08_deid.csv")
+postuser.number<-as.data.frame(postuser.number)
+
+#Rename continuous variables
+postuser.number<-postuser.number %>% 
+  rename('QDuration (in seconds)'='Duration..in.seconds.',
+QRecordedDate=RecordedDate,
+QResponseId=ResponseId,
+isi1=Q5.6,
+isi2=Q5.7,
+dbas1=Q5.11,
+dbas2=Q5.12,
+dbas3=Q5.13,
+dbas4=Q5.14,
+dbas5=Q5.15,
+dbas6=Q5.16,
+dbas7=Q5.17,
+dbas8=Q5.18,
+dbas9=Q5.19,
+dbas10=Q5.20,
+dbas11=Q5.21,
+dbas12=Q5.22,
+dbas13=Q5.23,
+dbas14=Q5.24,
+dbas15=Q5.25,
+dbas16=Q5.26,
+sloc1=Q5.29_1,
+sloc2=Q5.29_2,
+sloc3=Q5.29_3,
+sloc4=Q5.29_4,
+sloc5=Q5.29_5,
+sloc6=Q5.29_6,
+sloc7=Q5.29_7,
+sloc8=Q5.29_8,
+overload1=Q3.1_1,
+overload2=Q3.1_2,
+overload3=Q3.1_3,
+overload4=Q3.1_4,
+promis.ph1=Q296,
+promis.ph2=Q297,
+phq1=Q299_1,
+phq2=Q299_2,
+phq3=Q299_3,
+phq4=Q299_4)
+
+##Import data for ordinal variables
+postuser.ordinal<-read.csv("SHUTi-CARE_Post (User)_Final text_2023 03 08_deid.csv")
+postuser.ordinal<-as.data.frame(postuser.ordinal)
+
+##Rename ordinal variables
+postuser.ordinal<-postuser.ordinal %>% 
+  rename(eval.needs=QID187,
+eval.needs.how=Q191,
+eval.needs.different=Q193,
+eval.recommend=Q195,
+eval.recommend.different=Q197,
+eval.recommend.why=Q199,
+eval.satisfiedCSQ=Q201,
+eval.satisfied.why=Q203,
+eval.satisfied.different=Q205,
+eval.again=Q207,
+eval.again.different=Q209,
+eval.again.why=Q211,
+eval.cg_responsibilities=Q215,
+eval.cg_help=Q217,
+eval.cg_format=Q219,
+eval.cg_changes=Q221,
+eval.tailor=Q223,
+eval.convenience=Q229,
+eval.satisfiedIIUQ=QID212,
+eval.accept=QID213,
+eval.useful=QID214,
+eval.helpful=QID223,
+eval.website_work_you=QID225,
+eval.follow=QID231,
+eval.improve_sleep=Q301,
+eval.improve_cg=Q317,
+adherence.forgot=Q331,
+adherence.preferred_not=Q333,
+adherence.no_time=Q335,
+adherence.cg_issues=Q347,
+adherence.too_much=Q361,
+adherence.too_long=Q363,
+adherence.website_wont_help=Q365,
+adherence.rules=Q369,
+adherence.spouse=Q371,
+adherence.cr=Q293,
+adherence.sleep_restrict=Q373,
+adherence.hw_amount=Q377,
+adherence.hw_difficult=Q379,
+adherence.personal_email=Q383,
+adherence.phone=Q385,
+adherence.supportcall=Q387,
+adherence.forum=Q318,
+cg_changes=Q294,
+cg_changes1=Q295,
+wearables=Q319,
+wearables1=Q320,
+futurecontact=Q304,
+Qurl=url,
+Quuid=uuid)
+
+#Merge datasets
+postuser.number<-postuser.number %>% 
+  dplyr::select(-starts_with("Q"))
+postuser.ordinal<-postuser.ordinal %>% 
+  dplyr::select(-starts_with("Q"))
+
+postuser<- merge(postuser.ordinal, postuser.number, by.x = "PID", by.y = "PID", all = TRUE)
+rm(postuser.number, postuser.ordinal)
+```
+
+
+Post-A Non-user
+```{r}
+#Import data for continuous variables
+postnonuser.number<-read.csv("SHUTi-CARE_Post (No SHUTi)_Final numeric_2023 03 08_deid.csv")
+postnonuser.number<-as.data.frame(postnonuser.number)
+
+#Rename continuous variables
+postnonuser.number<- postnonuser.number %>% 
+  rename('QDuration (in seconds)'='Duration..in.seconds.',
+QRecordedDate=RecordedDate,
+QResponseId=ResponseId,
+isi1=Q9,
+isi2=Q10,
+overload1=Q66_1,
+overload2=Q66_2,
+overload3=Q66_3,
+overload4=Q66_4,
+promis.ph1=Q61,
+promis.ph2=Q62,
+phq1=Q64_1,
+phq2=Q64_2,
+phq3=Q64_3,
+phq4=Q64_4)
+
+##Import data for ordinal variables
+postnonuser.ordinal<-read.csv("SHUTi-CARE_Post (No SHUTi)_Final text_2023 03 08_deid.csv")
+postnonuser.ordinal<-as.data.frame(postnonuser.ordinal)
+
+##Rename ordinal variables
+postnonuser.ordinal<- postnonuser.ordinal %>% 
+  rename(barriers=Q18,
+barriers.other=Q18_8_TEXT,
+barriers.relevant=Q20,
+barriers.lifestyle=Q21,
+barriers.interest=Q22,
+barriers.complicated=Q23,
+barriers.time=Q24,
+barriers.unhelpful=Q25,
+barriers.no_need=Q26,
+cg_changes=Q67,
+cg_changes1=Q68,
+wearables=Q69,
+wearables1=Q72,
+futurecontact=Q65,
+Quuid=uuid)
+
+#Merge datasets
+postnonuser.number<-postnonuser.number %>% 
+  dplyr::select(-starts_with("Q"))
+postnonuser.ordinal<-postnonuser.ordinal %>% 
+  dplyr::select(-starts_with("Q"))
+
+postnonuser<- merge(postnonuser.ordinal, postnonuser.number, by.x = "PID", by.y = "PID", all = TRUE)
+rm(postnonuser.number, postnonuser.ordinal)
+```
+
+
+Core completion and engagement data
+```{r}
+#Compute number of Cores completed within 9-week Intervention period                         
+uniqueIDs <- unique(baseline$PID)
+dat_rawEvents <- read.csv("Z:/Research/Psychiatry and NB Sciences/PSYCH_eHealth/Kelly's Data/00. NCATS/Data & Analyses/Quantitative - Sleep diaries/Events data_export.csv")                         
+dat_rawEvents <- dat_rawEvents[which(dat_rawEvents$PID %in% uniqueIDs), ]  
+rawDat<- dat_rawEvents
+
+intdat <- uniqueIDs
+intdat <- as.data.frame(intdat)
+names(intdat) <- "PID"
+
+day0Marker <-"Event::Day0"                                         
+dat_rawEvents$day0data <- ifelse(str_detect(dat_rawEvents$Event.Type, day0Marker),1,0)
+day0data <- dat_rawEvents[which(dat_rawEvents$day0data==1),]
+day0data <- day0data[c(4,9)]
+names(day0data) <- c("PID", "Day0Date")
+
+rawDat <- left_join(rawDat, day0data, by = "PID")                     
+
+PostMarker <-"Post Questionnaire transitioned to Available"                                         
+dat_rawEvents$postdaydata <- ifelse(str_detect(dat_rawEvents$Description, PostMarker),1,0)
+postdaydata <- dat_rawEvents[which(dat_rawEvents$postdaydata==1),]
+postdaydata <- postdaydata[c(4,9)]
+names(postdaydata) <- c("PID", "PostAvailDate")
+
+rawDat <- left_join(rawDat, postdaydata, by = "PID")  
+
+rawDat$PostIntended<- as_datetime(rawDat$Day0Date) + days(63)
+rawDat$PostIntended<- ymd_hms(rawDat$PostIntended, tz = "UTC")
+
+rawDat$utctime.created<-str_replace(rawDat$Created.At, "UTC", "")
+rawDat$utctime.created<-ymd_hms(rawDat$utctime.created, tz = "UTC")
+
+rawDat$utctime.day0<-str_replace(rawDat$Day0Date, "UTC", "")
+rawDat$utctime.day0<-ymd_hms(rawDat$utctime.day0, tz = "UTC")
+
+rawDat$postDay0<- ifelse(rawDat$utctime.created > rawDat$utctime.day0, "Yes", "No")
+
+rawDat$utctime.postday<-str_replace(rawDat$PostAvailDate, "UTC", "")
+rawDat$utctime.postday<-ymd_hms(rawDat$utctime.postday, tz = "UTC")
+
+
+rawDat$prePostAvail<- ifelse(rawDat$utctime.created < rawDat$utctime.postday, "Yes", "No")
+rawDat$prePostIntend<- ifelse(rawDat$utctime.created < rawDat$PostIntended, "Yes", "No")
+rawDat$prePost<- coalesce(rawDat$prePostAvail, rawDat$prePostIntend)
+
+
+
+rawDat$inWindow <- ifelse(rawDat$postDay0 == "Yes" & rawDat$prePost == "Yes",    
+                          "Retain", "Remove")     
+rawDat_reduced <- rawDat[which(rawDat$inWindow=="Retain"),]
+
+completed <- "transitioned to Completed"     
+rawDat_reduced$CoresComp <- ifelse(str_detect(rawDat_reduced$Description, completed),
+                                      "Yes", "No") 
+rawDat_reduced <- rawDat_reduced[which(rawDat_reduced$CoresComp=="Yes"),]
+
+core <- "Activity: Core"     
+rawDat_reduced$Core <- ifelse(str_detect(rawDat_reduced$Description, core),
+                                      "Yes", "No") 
+rawDat_reduced <- rawDat_reduced[which(rawDat_reduced$Core=="Yes"),]
+
+
+rawDat_corecomp<- aggregate(data = rawDat_reduced,
+                       Description ~ PID,
+                       function(Description) length(unique(Description)))
+
+names(rawDat_corecomp) <- c("PID", "int_cores_comp")
+
+
+#Compute total cores complete
+rawDat$inWindowTot <- ifelse(rawDat$postDay0 == "Yes",    
+                          "Retain", "Remove")     
+rawDat_reduced <- rawDat[which(rawDat$inWindowTot=="Retain"),]
+
+completed <- "transitioned to Completed"     
+rawDat_reduced$CoresComp <- ifelse(str_detect(rawDat_reduced$Description, completed),
+                                      "Yes", "No") 
+rawDat_reduced <- rawDat_reduced[which(rawDat_reduced$CoresComp=="Yes"),]
+
+core <- "Activity: Core"     
+rawDat_reduced$Core <- ifelse(str_detect(rawDat_reduced$Description, core),
+                                      "Yes", "No") 
+rawDat_reduced <- rawDat_reduced[which(rawDat_reduced$Core=="Yes"),]
+
+
+rawDat_totcorecomp<- aggregate(data = rawDat_reduced,
+                       Description ~ PID,
+                       function(Description) length(unique(Description)))
+
+names(rawDat_totcorecomp) <- c("PID", "tot_cores_comp")
+coreDat<-merge(rawDat_corecomp, rawDat_totcorecomp, by = "PID", all = TRUE)
+
+uniqueIDs<-as.data.frame(uniqueIDs)
+names(uniqueIDs)<-"PID"
+coreDat<- merge(x=uniqueIDs, y=coreDat, by.x = "PID", by.y = "PID", all.x = TRUE)
+coreDat$int_cores_comp <- replace_na(coreDat$int_cores_comp, 0)
+coreDat$tot_cores_comp <- replace_na(coreDat$tot_cores_comp, 0)
+
+#Compute User variable
+coreDat$user<- ifelse(coreDat$int_cores_comp > 0, "User", "Non-user")
+coreDat$engagement<- ifelse(coreDat$user == "Non-user", "Non-user", ifelse(coreDat$int_cores_comp >= 4, "Completer", "Incompleter"))
+
+#Remove dropped participant
+coreDat<- coreDat %>% 
+  filter(PID != 202)
+
+#write.csv(coreDat, "Z:/Research/Psychiatry and NB Sciences/PSYCH_eHealth/Kelly's Data/00. NCATS/Data & Analyses/Core Completion/Core Completion Data_R.csv", row.names = FALSE)
+
+rm(rawDat, dat_rawEvents, day0data, intdat, uniqueIDs, postdaydata, rawDat_corecomp, rawDat_reduced, rawDat_totcorecomp, completed, core, day0Marker, PostMarker)
+```
+
+
+Interest form data 
+```{r}
+#Import data for continuous variables
+interest<-read.csv("Z:/Research/Psychiatry and NB Sciences/PSYCH_eHealth/Kelly's Data/00. NCATS/Data & Analyses/Raw files/SHUTi-CARE_Interest_limited.csv")
+interest<-as.data.frame(baseline.number)
+```
+
+
+Create full long dataset for cleaning
+```{r}
+baselinern<-baseline
+names(baselinern)<- paste(names(baselinern), "T1", sep=".")
+
+postuserrn<-postuser
+names(postuserrn)<- paste(names(postuserrn), "T2u", sep=".")
+
+data<- merge(baselinern, postuserrn, by.x = "PID.T1", by.y = "PID.T2u", all = TRUE)
+
+
+postnonuserrn<-postnonuser
+names(postnonuserrn)<- paste(names(postnonuserrn), "T2n", sep=".")
+
+data<- merge(data, postnonuserrn, by.x = "PID.T1", by.y = "PID.T2n", all = TRUE)
+
+data<- merge(data, coreDat, by.x = "PID.T1", by.y = "PID", all = TRUE)
+
+data<- merge(data, interest, by.x = "PID.T1",  by.y = "PID", all.x = TRUE)
+
+#Remove participant who dropped out after completing baseline questionnaire (i.e., never received access to SHUTi)
+data<-data %>% 
+  filter(PID.T1 != 202)
+
+#Remove participant who withdrew during the intervention period (i.e., did not have full 9-week intervention period to be comparable with other participants)
+data<-data %>% 
+  filter(PID.T1 != 607)
+
+rm(baseline, baselinern, coreDat, postnonuser, postnonuserrn, postuser, postuserrn, interest)
+```
+
+
+##Data cleaning
+Demographics
+```{r}
+#Age
+data$age.T1<-car::recode(data$age.T1,'4 = 18;
+5 = 19;
+6 = 20;
+7 = 21;
+8 = 22;
+9 = 23;
+10 = 24;
+11 = 25;
+12 = 26;
+13 = 27;
+14 = 28;
+15 = 29;
+16 = 30;
+17 = 31;
+18 = 32;
+19 = 33;
+20 = 34;
+21 = 35;
+22 = 36;
+23 = 37;
+24 = 38;
+25 = 39;
+26 = 40;
+27 = 41;
+28 = 42;
+29 = 43;
+30 = 44;
+31 = 45;
+32 = 46;
+33 = 47;
+34 = 48;
+35 = 49;
+36 = 50;
+37 = 51;
+38 = 52;
+39 = 53;
+40 = 54;
+41 = 55;
+42 = 56;
+43 = 57;
+44 = 58;
+45 = 59;
+46 = 60;
+47 = 61;
+48 = 62;
+49 = 63;
+50 = 64;
+51 = 65;
+52 = 66;
+53 = 67;
+54 = 68;
+55 = 69;
+56 = 70;
+57 = 71;
+58 = 72;
+59 = 73;
+60 = 74;
+61 = 75;
+62 = 76;
+63 = 77;
+64 = 78;
+65 = 79;
+66 = 80;
+67 = 81;
+68 = 82;
+69 = 83;
+70 = 84;
+71 = 85;
+72 = 86;
+73 = 87;
+74 = 88;
+75 = 89;
+76 = 90')
+describe(data$age.T1)
+
+#Gender
+data<- data %>% 
+  mutate(gender_r = ifelse((gender.T1 == "Female") & (sex.T1 == "Female"), "Woman", "other"))
+data<- data %>% 
+  mutate(gender_r = ifelse((gender.T1 == "Female") & (sex.T1 == "Male"), "Transgender woman", gender_r))
+data<- data %>% 
+  mutate(gender_r = ifelse((gender.T1 == "Male") & (sex.T1 == "Male"), "Man", gender_r))         
+data<- data %>% 
+  mutate(gender_r = ifelse((gender.T1 == "Male") & (sex.T1 == "Female"), "Transgender man", gender_r))  
+data<- data %>% 
+  mutate(gender_r = ifelse((gender.T1 == "Genderqueer"), "Genderqueer / Non-binary", gender_r)) 
+table(data$gender_r)
+
+#Race
+table(data$race.T1)
+
+#Ethnicity
+table(data$ethnicity.T1)
+
+#Income
+table(data$income.T1)
+
+#Education
+table(data$education.T1)
+
+#Health Literacy
+table(data$health_literacy.T1)
+
+#Years Providing Care
+table(data$care_duration_y.T1)
+data$care_dur_yr = car::recode(data$care_duration_y.T1, '1 = 0; 2 = 1; 3 = 2; 4 = 3; 5 = 4; 6 = 5; 7 = 6; 8 = 7; 9 = 8; 10 = 9; 11 = 10; 12 = 11')
+data$care_dur_yr<-as.numeric(data$care_dur_yr)
+data$care_duration_y.T1<- car::recode(data$care_duration_y.T1, '1 = "0"; 2 = "1"; 3 = "2"; 4 = "3"; 5 = "4"; 6 = "5"; 7 = "6"; 8 = "7"; 9 = "8"; 10 = "9"; 11 = "10"; 12 = "11 or more"')
+
+
+table(data$care_duration_m.T1)
+data$care_dur_mo = car::recode(data$care_duration_m.T1, '1 = 0; 2 = 1; 3 = 2; 4 = 3; 5 = 4; 6 = 5; 7 = 6; 8 = 7; 9 = 8; 10 = 9; 11 = 10; 12 = 11')
+data$care_dur_mo<-as.numeric(data$care_dur_mo)
+data$care_duration_m.T1<- car::recode(data$care_duration_m.T1, '1 = "0"; 2 = "1"; 3 = "2"; 4 = "3"; 5 = "4"; 6 = "5"; 7 = "6"; 8 = "7"; 9 = "8"; 10 = "9"; 11 = "10"; 12 = "11"')
+
+
+data<-data %>% 
+  mutate(care_dur = ((care_dur_yr*12) + care_dur_mo))
+
+describe(data$care_dur)
+
+
+#Caregiving intensity
+table(data$intensity.class)
+describe(data$intensity.points)
+
+
+#Primary care recipient age
+table(data$CR_age.T1)
+data$CR_age_r<-car::recode(data$CR_age.T1, '4 = 0;
+92 = 1;
+93 = 2;
+94 = 3;
+95 = 4;
+96 = 5;
+97 = 6;
+98 = 7;
+5 = 8;
+99 = 9;
+100 = 10;
+101 = 11;
+102 = 12;
+103 = 13;
+104 = 14;
+105 = 15;
+106 = 16;
+107 = 17;
+108 = 18;
+109 = 19;
+110 = 20;
+111 = 21;
+112 = 22;
+113 = 23;
+114 = 24;
+115 = 25;
+116 = 26;
+117 = 27;
+118 = 28;
+119 = 29;
+120 = 30;
+121 = 31;
+122 = 32;
+123 = 33;
+124 = 34;
+125 = 35;
+126 = 36;
+127 = 37;
+128 = 38;
+129 = 39;
+130 = 40;
+131 = 41;
+132 = 42;
+133 = 43;
+134 = 44;
+135 = 45;
+136 = 46;
+137 = 47;
+138 = 48;
+139 = 49;
+140 = 50;
+141 = 51;
+142 = 52;
+143 = 53;
+144 = 54;
+145 = 55;
+146 = 56;
+147 = 57;
+148 = 58;
+149 = 59;
+150 = 60;
+151 = 61;
+152 = 62;
+153 = 63;
+154 = 64;
+155 = 65;
+156 = 66;
+157 = 67;
+158 = 68;
+159 = 69;
+160 = 70;
+161 = 71;
+162 = 72;
+163 = 73;
+164 = 74;
+165 = 75;
+166 = 76;
+167 = 77;
+168 = 78;
+169 = 79;
+170 = 80;
+171 = 81;
+172 = 82;
+173 = 83;
+174 = 84;
+175 = 85;
+176 = 86;
+177 = 87;
+178 = 88;
+179 = 89;
+180 = 90')
+
+data$CR_age.T1<-car::recode(data$CR_age.T1, '4 = "Less than 1 year old";
+92 = "1";
+93 = "2";
+94 = "3";
+95 = "4";
+96 = "5";
+97 = "6";
+98 = "7";
+5 = "8";
+99 = "9";
+100 = "10";
+101 = "11";
+102 = "12";
+103 = "13";
+104 = "14";
+105 = "15";
+106 = "16";
+107 = "17";
+108 = "18";
+109 = "19";
+110 = "20";
+111 = "21";
+112 = "22";
+113 = "23";
+114 = "24";
+115 = "25";
+116 = "26";
+117 = "27";
+118 = "28";
+119 = "29";
+120 = "30";
+121 = "31";
+122 = "32";
+123 = "33";
+124 = "34";
+125 = "35";
+126 = "36";
+127 = "37";
+128 = "38";
+129 = "39";
+130 = "40";
+131 = "41";
+132 = "42";
+133 = "43";
+134 = "44";
+135 = "45";
+136 = "46";
+137 = "47";
+138 = "48";
+139 = "49";
+140 = "50";
+141 = "51";
+142 = "52";
+143 = "53";
+144 = "54";
+145 = "55";
+146 = "56";
+147 = "57";
+148 = "58";
+149 = "59";
+150 = "60";
+151 = "61";
+152 = "62";
+153 = "63";
+154 = "64";
+155 = "65";
+156 = "66";
+157 = "67";
+158 = "68";
+159 = "69";
+160 = "70";
+161 = "71";
+162 = "72";
+163 = "73";
+164 = "74";
+165 = "75";
+166 = "76";
+167 = "77";
+168 = "78";
+169 = "79";
+170 = "80";
+171 = "81";
+172 = "82";
+173 = "83";
+174 = "84";
+175 = "85";
+176 = "86";
+177 = "87";
+178 = "88";
+179 = "89";
+180 = "90 or older"')
+
+
+#Caregiver Relationship to Patient
+table(data$CR_relationship.T1)
+
+
+#Primary care recipient primary condition
+table(data$CR_condition.T1)
+```
+
+Caregiving-related User Characteristics
+```{r}
+#Pearlin Stress Scale (PSS) - Overload Subscale
+##4 items, All positively scored
+##No recoding necessary
+##Run descriptives
+describe(data$overload1.T1)
+describe(data$overload2.T1)
+describe(data$overload3.T1)
+describe(data$overload4.T1)
+
+describe(data$overload1.T2u)
+describe(data$overload2.T2u)
+describe(data$overload3.T2u)
+describe(data$overload4.T2u)
+
+describe(data$overload1.T2n)
+describe(data$overload2.T2n)
+describe(data$overload3.T2n)
+describe(data$overload4.T2n)
+
+##Calculate cronbach alpha
+overload.T1<- data %>% 
+  dplyr::select(overload1.T1, overload2.T1, overload3.T1, overload4.T1)
+ltm::cronbach.alpha(overload.T1, na.rm=TRUE)
+
+overload.T2u<- data %>% 
+  dplyr::select(overload1.T2u, overload2.T2u, overload3.T2u, overload4.T2u)
+ltm::cronbach.alpha(overload.T2u, na.rm=TRUE)
+
+overload.T2n<- data %>% 
+  dplyr::select(overload1.T2n, overload2.T2n, overload3.T2n, overload4.T2n)
+ltm::cronbach.alpha(overload.T2n, na.rm=TRUE)
+
+rm(overload.T1, overload.T2u, overload.T2n)
+
+##Compute subscale score
+data %>%
+  dplyr::select(PID.T1, overload1.T1, overload2.T1, overload3.T1, overload4.T1) %>%
+  mutate(overload.T1 = overload1.T1 + overload2.T1 + overload3.T1 + overload4.T1) %>% 
+  view()
+
+data<-data %>%
+  mutate(overload.T1 = overload1.T1 + overload2.T1 + overload3.T1 + overload4.T1)
+
+
+data %>%
+  dplyr::select(PID.T1, overload1.T2u, overload2.T2u, overload3.T2u, overload4.T2u) %>%
+  mutate(overload.T2u = overload1.T2u + overload2.T2u + overload3.T2u + overload4.T2u) %>% 
+  view()
+
+data<-data %>%
+  mutate(overload.T2u = overload1.T2u + overload2.T2u + overload3.T2u + overload4.T2u)
+
+
+data %>%
+  dplyr::select(PID.T1, overload1.T2n, overload2.T2n, overload3.T2n, overload4.T2n) %>%
+  mutate(overload.T2n = overload1.T2n + overload2.T2n + overload3.T2n + overload4.T2n) %>% 
+  view()
+
+data<-data %>%
+  mutate(overload.T2n = overload1.T2n + overload2.T2n + overload3.T2n + overload4.T2n)
+#End PSS - Overload Subscale
+
+
+#Pearlin Stress Scale (PSS) - Caregiving Competence Subscale
+##4 items
+##No recoding necessary
+##Run descriptives
+describe(data$cgefficacy1.T1)
+describe(data$cgefficacy2.T1)
+describe(data$cgefficacy3.T1)
+describe(data$cgefficacy4.T1)
+
+##Calculate cronbach alpha for subscale 
+cgefficacy<- data %>% 
+  dplyr::select(cgefficacy1.T1:cgefficacy4.T1)
+ltm::cronbach.alpha(cgefficacy, na.rm=TRUE)
+
+rm(cgefficacy)
+
+##Compute subscale score
+data %>% 
+  dplyr::select(PID.T1, cgefficacy1.T1, cgefficacy2.T1, cgefficacy3.T1, cgefficacy4.T1) %>% 
+  mutate(cgefficacy.T1 = cgefficacy1.T1 + cgefficacy2.T1 + cgefficacy3.T1 + cgefficacy4.T1) %>% 
+  view()
+
+data<-data %>% 
+  mutate(cgefficacy.T1 = cgefficacy1.T1 + cgefficacy2.T1 + cgefficacy3.T1 + cgefficacy4.T1)
+#End PSS - Caregiving Competence Subscale
+
+
+
+#Caregiver Guilt Questionnaire
+##Only used 3 of 5 subscales in SHUTi CARE Study. 
+##Begin Guilt about Doing Wrong by the Care Recipient Subscale (of Caregiver Guilt Questionnaire)
+###7 items
+###All positively scored
+###Original items #2, 8, 10, 11, 12, 14, 20; baseline questionnaire items #2, 6, 8, 9, 10, 12, 15.
+describe(data$guilt_dowrong1.T1)
+describe(data$guilt_dowrong2.T1)
+describe(data$guilt_dowrong3.T1)
+describe(data$guilt_dowrong4.T1)
+describe(data$guilt_dowrong5.T1)
+describe(data$guilt_dowrong6.T1)
+describe(data$guilt_dowrong7.T1)
+
+###RECODE: all items in original manuscript were scored on a scale of 0 (never) to 4 (always or almost always), whereas Qualtrics scored from 1 to 5.
+data$guilt_dowrong1.T1 <-car::recode(data$guilt_dowrong1.T1,'1=0; 2=1; 3=2; 4=3; 5=4')
+data$guilt_dowrong2.T1 <-car::recode(data$guilt_dowrong2.T1,'1=0; 2=1; 3=2; 4=3; 5=4')
+data$guilt_dowrong3.T1 <-car::recode(data$guilt_dowrong3.T1,'1=0; 2=1; 3=2; 4=3; 5=4')
+data$guilt_dowrong4.T1 <-car::recode(data$guilt_dowrong4.T1,'1=0; 2=1; 3=2; 4=3; 5=4')
+data$guilt_dowrong5.T1 <-car::recode(data$guilt_dowrong5.T1,'1=0; 2=1; 3=2; 4=3; 5=4')
+data$guilt_dowrong6.T1 <-car::recode(data$guilt_dowrong6.T1,'1=0; 2=1; 3=2; 4=3; 5=4')
+data$guilt_dowrong7.T1 <-car::recode(data$guilt_dowrong7.T1,'1=0; 2=1; 3=2; 4=3; 5=4')
+
+###Repeat descriptives after recoding.
+describe(data$guilt_dowrong1.T1)
+describe(data$guilt_dowrong2.T1)
+describe(data$guilt_dowrong3.T1)
+describe(data$guilt_dowrong4.T1)
+describe(data$guilt_dowrong5.T1)
+describe(data$guilt_dowrong6.T1)
+describe(data$guilt_dowrong7.T1)
+
+###Compute subscale score and calculate cronbach alpha for subscale.
+cgguilt_wrong.T1 <-data %>%
+  dplyr::select(guilt_dowrong1.T1, guilt_dowrong2.T1, guilt_dowrong3.T1, guilt_dowrong4.T1, guilt_dowrong5.T1, guilt_dowrong6.T1, guilt_dowrong7.T1)
+ltm::cronbach.alpha(cgguilt_wrong.T1)
+
+rm(cgguilt_wrong.T1)
+
+
+data %>% 
+  dplyr::select(PID.T1, guilt_dowrong1.T1, guilt_dowrong2.T1, guilt_dowrong3.T1, guilt_dowrong4.T1, guilt_dowrong5.T1, guilt_dowrong6.T1, guilt_dowrong7.T1) %>% 
+  mutate(cgguilt_wrong.T1 = guilt_dowrong1.T1 + guilt_dowrong2.T1 + guilt_dowrong3.T1 + guilt_dowrong4.T1 + guilt_dowrong5.T1 + guilt_dowrong6.T1 + guilt_dowrong7.T1) %>% 
+  View()
+
+data <- data %>% 
+  mutate(cgguilt_wrong.T1 = guilt_dowrong1.T1 + guilt_dowrong2.T1 + guilt_dowrong3.T1 + guilt_dowrong4.T1 + guilt_dowrong5.T1 + guilt_dowrong6.T1 + guilt_dowrong7.T1)
+##End Guilt about Doing Wrong by the Care Recipient Subscale (of Caregiver Guilt Questionnaire)
+
+
+##Begin Guilt about Failing to Meet the Challenges of Caregiver Subscale (of Caregiver Guilt Questionnaire)
+###6 items
+###5 positively scored, manuscript item 6/baseline question 4 inversely scored
+###Original items #5, 6, 9, 13, 21, 22; baseline questionnaire items #3, 4, 7, 11, 16, 17.
+describe(data$guilt_notrise1.T1)
+describe(data$guilt_notrise2.T1)
+describe(data$guilt_notrise3.T1)
+describe(data$guilt_notrise4.T1)
+describe(data$guilt_notrise5.T1)
+describe(data$guilt_notrise6.T1)
+
+###RECODE: all items in original manuscript were scored on a scale of 0 (never) to 4 (always or almost always), whereas Qualtrics scored from 1 to 5.
+###Item guilt_notrise2.T1 should be reverse scored.
+data$guilt_notrise1.T1<- car::recode(data$guilt_notrise1.T1,'1=0; 2=1; 3=2; 4=3; 5=4')
+data$guilt_notrise2.T1<- car::recode(data$guilt_notrise2.T1,'1=4; 2=3; 3=2; 4=1; 5=0')
+data$guilt_notrise3.T1<- car::recode(data$guilt_notrise3.T1,'1=0; 2=1; 3=2; 4=3; 5=4')
+data$guilt_notrise4.T1<- car::recode(data$guilt_notrise4.T1,'1=0; 2=1; 3=2; 4=3; 5=4')
+data$guilt_notrise5.T1<- car::recode(data$guilt_notrise5.T1,'1=0; 2=1; 3=2; 4=3; 5=4')
+data$guilt_notrise6.T1<- car::recode(data$guilt_notrise6.T1,'1=0; 2=1; 3=2; 4=3; 5=4')
+
+###Repeat descriptives after recoding.
+describe(data$guilt_notrise1.T1)
+describe(data$guilt_notrise2.T1)
+describe(data$guilt_notrise3.T1)
+describe(data$guilt_notrise4.T1)
+describe(data$guilt_notrise5.T1)
+describe(data$guilt_notrise6.T1)
+
+###Compute subscale score and calculate cronbach alpha for subscale.
+cgguilt_fail.T1 <-data %>%
+  dplyr::select(guilt_notrise1.T1, guilt_notrise2.T1, guilt_notrise3.T1, guilt_notrise4.T1, guilt_notrise5.T1, guilt_notrise6.T1)
+ltm::cronbach.alpha(cgguilt_fail.T1)
+
+rm(cgguilt_fail.T1)
+
+
+data %>% 
+  dplyr::select(PID.T1, guilt_notrise1.T1, guilt_notrise2.T1, guilt_notrise3.T1, guilt_notrise4.T1, guilt_notrise5.T1, guilt_notrise6.T1) %>% 
+  mutate(cgguilt_fail.T1 = guilt_notrise1.T1 + guilt_notrise2.T1 + guilt_notrise3.T1 + guilt_notrise4.T1 + guilt_notrise5.T1 + guilt_notrise6.T1) %>% 
+  View()
+
+data <- data %>% 
+  mutate(cgguilt_fail.T1 = guilt_notrise1.T1 + guilt_notrise2.T1 + guilt_notrise3.T1 + guilt_notrise4.T1 + guilt_notrise5.T1 + guilt_notrise6.T1)
+##End Guilt about Failing to Meet the Challenges of Caregiver Subscale (of Caregiver Guilt Questionnaire)
+
+
+##Begin Guilt about SelfCare Subscale (of Caregiver Guilt Questionnaire)
+###4 items
+###All positively scored
+###Original items #1, 7, 15, 16; baseline questionnaire items #1, 5, 13, 14.
+describe(data$guilt_selfcare1.T1)
+describe(data$guilt_selfcare2.T1)
+describe(data$guilt_selfcare3.T1)
+describe(data$guilt_selfcare4.T1)
+
+###RECODE: all items in original manuscript were scored on a scale of 0 (never) to 4 (always or almost always), whereas Qualtrics scored from 1 to 5.
+data$guilt_selfcare1.T1 <-car::recode(data$guilt_selfcare1.T1,'1=0; 2=1; 3=2; 4=3; 5=4')
+data$guilt_selfcare2.T1 <-car::recode(data$guilt_selfcare2.T1,'1=0; 2=1; 3=2; 4=3; 5=4')
+data$guilt_selfcare3.T1 <-car::recode(data$guilt_selfcare3.T1,'1=0; 2=1; 3=2; 4=3; 5=4')
+data$guilt_selfcare4.T1 <-car::recode(data$guilt_selfcare4.T1,'1=0; 2=1; 3=2; 4=3; 5=4')
+
+###Repeat descriptives after recoding.
+describe(data$guilt_selfcare1.T1)
+describe(data$guilt_selfcare2.T1)
+describe(data$guilt_selfcare3.T1)
+describe(data$guilt_selfcare4.T1)
+
+###Compute subscale score and calculate cronbach alpha for subscale.
+cgguilt_selfcare.T1 <-data %>%
+  dplyr::select(guilt_selfcare1.T1, guilt_selfcare2.T1, guilt_selfcare3.T1, guilt_selfcare4.T1)
+ltm::cronbach.alpha(cgguilt_selfcare.T1)
+
+rm(cgguilt_selfcare.T1)
+
+
+data %>% 
+  dplyr::select(PID.T1, guilt_selfcare1.T1, guilt_selfcare2.T1, guilt_selfcare3.T1, guilt_selfcare4.T1) %>% 
+  mutate(cgguilt_selfcare.T1 = guilt_selfcare1.T1 + guilt_selfcare2.T1 + guilt_selfcare3.T1 + guilt_selfcare4.T1) %>% 
+  View()
+
+data <- data %>% 
+  mutate(cgguilt_selfcare.T1 = guilt_selfcare1.T1 + guilt_selfcare2.T1 + guilt_selfcare3.T1 + guilt_selfcare4.T1)
+##End Guilt about SelfCare Subscale (of Caregiver Guilt Questionnaire)
+#End Caregiver Guilt Questionnaire
+```
+
+
+Caregiving-related Environmental Characteristics
+```{r}
+#Proximity
+table(data$CR_live.T1)
+data<- data %>% 
+  mutate(cr_proximity.T1 = ifelse(CR_same_room.T1 == "Yes", "Bedpartner", "Live together"))
+data<- data %>% 
+  mutate(cr_proximity.T1 = ifelse(CR_live.T1 != "In your household", "Other Living Sit", cr_proximity.T1))
+table(data$cr_proximity.T1)
+
+
+#Modified Barthel Activities of Daily Living [ADL] Index
+##10 items
+##Items scored in original manuscript with 0 as unable/greatest dependency (through up to 3 pts, depending on item), whereas Qualtrics had 1 as lowest score value (through up to 4)
+#Run descriptives on original items
+describe(data$adl_bowels.T1)
+describe(data$adl_bladder.T1)
+describe(data$adl_grooming.T1)
+describe(data$adl_toilet.T1)
+describe(data$adl_feeding.T1)
+describe(data$adl_transfer.T1)
+describe(data$adl_mobility.T1)
+describe(data$adl_dressing.T1)
+describe(data$adl_stairs.T1)
+describe(data$adl_bathing.T1)
+
+##Recode items to match original manuscript scoring of 0-3 (or less)
+data$adl_bowels.T1<-car::recode(data$adl_bowels.T1, '1=0; 2=1; 3=2')
+data$adl_bladder.T1<-car::recode(data$adl_bladder.T1, '1=0; 2=1; 3=2')
+data$adl_grooming.T1<-car::recode(data$adl_grooming.T1, '1=0; 3=1')
+data$adl_toilet.T1<-car::recode(data$adl_toilet.T1, '1=0; 3=1; 4=2')
+data$adl_feeding.T1<-car::recode(data$adl_feeding.T1, '1=0; 2=1; 3=2')
+data$adl_transfer.T1<-car::recode(data$adl_transfer.T1, '1=0; 2=1; 3=2; 4=3')
+data$adl_mobility.T1<-car::recode(data$adl_mobility.T1, '1=0; 2=1; 3=2; 4=3')
+data$adl_dressing.T1<-car::recode(data$adl_dressing.T1, '1=0; 2=1; 4=2')
+data$adl_stairs.T1<-car::recode(data$adl_stairs.T1, '1=0; 2=1; 3=2')
+data$adl_bathing.T1<-car::recode(data$adl_bathing.T1, '1=0; 2=1')
+
+#Repeat descriptives on recoded items
+describe(data$adl_bowels.T1)
+describe(data$adl_bladder.T1)
+describe(data$adl_grooming.T1)
+describe(data$adl_toilet.T1)
+describe(data$adl_feeding.T1)
+describe(data$adl_transfer.T1)
+describe(data$adl_mobility.T1)
+describe(data$adl_dressing.T1)
+describe(data$adl_stairs.T1)
+describe(data$adl_bathing.T1)
+
+##Compute score between 0-20 points by summing total points from items 
+###QUESTION: LEADS TO SCORES GREATER THAN 20 POINTS - NEED TO BE RESCALED FURTHER? RESCORING CORRECT?
+data %>%
+  dplyr::select(PID.T1, adl_bowels.T1, adl_bladder.T1, adl_grooming.T1, adl_toilet.T1, adl_feeding.T1, adl_transfer.T1, adl_mobility.T1, adl_dressing.T1, adl_stairs.T1, adl_bathing.T1) %>% 
+  mutate(barthel.T1 = adl_bowels.T1 + adl_bladder.T1 + adl_grooming.T1 + adl_toilet.T1 + adl_feeding.T1 + adl_transfer.T1 + adl_mobility.T1 + adl_dressing.T1 + adl_stairs.T1 + adl_bathing.T1) %>% 
+  view()
+
+data <- data %>% 
+   mutate(barthel.T1 = adl_bowels.T1 + adl_bladder.T1 + adl_grooming.T1 + adl_toilet.T1 + adl_feeding.T1 + adl_transfer.T1 + adl_mobility.T1 + adl_dressing.T1 + adl_stairs.T1 + adl_bathing.T1)
+#End Barthel ADL Index
+
+
+#Pearlin Stress Scale (PSS) – Cognitive Status Subscale
+##8 items
+##All scored positively, with higher scores reflecting more significant cognitive difficulties
+##Run descriptives on all items
+describe(data$pss_cognitive1.T1)
+describe(data$pss_cognitive2.T1)
+describe(data$pss_cognitive3.T1)
+describe(data$pss_cognitive4.T1)
+describe(data$pss_cognitive5.T1)
+describe(data$pss_cognitive6.T1)
+describe(data$pss_cognitive7.T1)
+describe(data$pss_cognitive8.T1)
+
+##RECODE: Original manuscript scored 0/Not at all difficult – 4/Can’t do at all; Qualtrics scored 1/Can’t do at all – 5/Not at all difficult
+data$pss_cognitive1.T1<-car::recode(data$pss_cognitive1.T1,'1=4; 2=3; 3=2; 4=1; 5=0')
+data$pss_cognitive2.T1<-car::recode(data$pss_cognitive2.T1,'1=4; 2=3; 3=2; 4=1; 5=0')
+data$pss_cognitive3.T1<-car::recode(data$pss_cognitive3.T1,'1=4; 2=3; 3=2; 4=1; 5=0')
+data$pss_cognitive4.T1<-car::recode(data$pss_cognitive4.T1,'1=4; 2=3; 3=2; 4=1; 5=0')
+data$pss_cognitive5.T1<-car::recode(data$pss_cognitive5.T1,'1=4; 2=3; 3=2; 4=1; 5=0')
+data$pss_cognitive6.T1<-car::recode(data$pss_cognitive6.T1,'1=4; 2=3; 3=2; 4=1; 5=0')
+data$pss_cognitive7.T1<-car::recode(data$pss_cognitive7.T1,'1=4; 2=3; 3=2; 4=1; 5=0')
+data$pss_cognitive8.T1<-car::recode(data$pss_cognitive8.T1,'1=4; 2=3; 3=2; 4=1; 5=0')
+
+##Rerun descriptives with rescored items
+describe(data$pss_cognitive1.T1)
+describe(data$pss_cognitive2.T1)
+describe(data$pss_cognitive3.T1)
+describe(data$pss_cognitive4.T1)
+describe(data$pss_cognitive5.T1)
+describe(data$pss_cognitive6.T1)
+describe(data$pss_cognitive7.T1)
+describe(data$pss_cognitive8.T1)
+
+##Calculate Cronbach alpha and compute scale
+pss_cognitive.T1<-data %>% 
+  dplyr::select(pss_cognitive1.T1, pss_cognitive2.T1, pss_cognitive3.T1, pss_cognitive4.T1, pss_cognitive5.T1, pss_cognitive6.T1,pss_cognitive7.T1, pss_cognitive8.T1)
+ltm::cronbach.alpha(pss_cognitive.T1)
+
+rm(pss_cognitive.T1)
+
+
+data %>% 
+  dplyr::select(PID.T1, pss_cognitive1.T1, pss_cognitive2.T1, pss_cognitive3.T1, pss_cognitive4.T1, pss_cognitive5.T1, pss_cognitive6.T1,pss_cognitive7.T1, pss_cognitive8.T1) %>% 
+  mutate(pss_cognitive.T1 = pss_cognitive1.T1 + pss_cognitive2.T1 + pss_cognitive3.T1 + pss_cognitive4.T1 + pss_cognitive5.T1 + pss_cognitive6.T1 + pss_cognitive7.T1 + pss_cognitive8.T1) %>% 
+  View()
+
+data<-data %>% 
+  mutate(pss_cognitive.T1 = pss_cognitive1.T1 + pss_cognitive2.T1 + pss_cognitive3.T1 + pss_cognitive4.T1 + pss_cognitive5.T1 + pss_cognitive6.T1 + pss_cognitive7.T1 + pss_cognitive8.T1)
+#End PSS – Cognitive Status Subscale
+
+
+#Pearlin Stress Scale (PSS) - Problematic Behavior Subscale
+##14 items
+##All positively scored
+##Run descriptives on original items
+describe(data$pss_behavior1.T1)
+describe(data$pss_behavior2.T1)
+describe(data$pss_behavior3.T1)
+describe(data$pss_behavior4.T1)
+describe(data$pss_behavior5.T1)
+describe(data$pss_behavior6.T1)
+describe(data$pss_behavior7.T1)
+describe(data$pss_behavior8.T1)
+describe(data$pss_behavior9.T1)
+describe(data$pss_behavior10.T1)
+describe(data$pss_behavior11.T1)
+describe(data$pss_behavior12.T1)
+describe(data$pss_behavior13.T1)
+describe(data$pss_behavior14.T1)
+
+##RECODE: all items in original manuscript were scored on a scale of 1 (No days) to 4 (5 or more days), whereas Qualtrics scoring is reversed and goes from 1 (5 or more days) to 4 (No days)
+data$pss_behavior1.T1<-car::recode(data$pss_behavior1.T1,'1=4; 2=3; 3=2; 4=1')
+data$pss_behavior2.T1<-car::recode(data$pss_behavior2.T1,'1=4; 2=3; 3=2; 4=1')
+data$pss_behavior3.T1<-car::recode(data$pss_behavior3.T1,'1=4; 2=3; 3=2; 4=1')
+data$pss_behavior4.T1<-car::recode(data$pss_behavior4.T1,'1=4; 2=3; 3=2; 4=1')
+data$pss_behavior5.T1<-car::recode(data$pss_behavior5.T1,'1=4; 2=3; 3=2; 4=1')
+data$pss_behavior6.T1<-car::recode(data$pss_behavior6.T1,'1=4; 2=3; 3=2; 4=1')
+data$pss_behavior7.T1<-car::recode(data$pss_behavior7.T1,'1=4; 2=3; 3=2; 4=1')
+data$pss_behavior8.T1<-car::recode(data$pss_behavior8.T1,'1=4; 2=3; 3=2; 4=1')
+data$pss_behavior9.T1<-car::recode(data$pss_behavior9.T1,'1=4; 2=3; 3=2; 4=1')
+data$pss_behavior10.T1<-car::recode(data$pss_behavior10.T1,'1=4; 2=3; 3=2; 4=1')
+data$pss_behavior11.T1<-car::recode(data$pss_behavior11.T1,'1=4; 2=3; 3=2; 4=1')
+data$pss_behavior12.T1<-car::recode(data$pss_behavior12.T1,'1=4; 2=3; 3=2; 4=1')
+data$pss_behavior13.T1<-car::recode(data$pss_behavior13.T1,'1=4; 2=3; 3=2; 4=1')
+data$pss_behavior14.T1<-car::recode(data$pss_behavior14.T1,'1=4; 2=3; 3=2; 4=1')
+
+##Repeat descriptives after recoding.
+describe(data$pss_behavior1.T1)
+describe(data$pss_behavior2.T1)
+describe(data$pss_behavior3.T1)
+describe(data$pss_behavior4.T1)
+describe(data$pss_behavior5.T1)
+describe(data$pss_behavior6.T1)
+describe(data$pss_behavior7.T1)
+describe(data$pss_behavior8.T1)
+describe(data$pss_behavior9.T1)
+describe(data$pss_behavior10.T1)
+describe(data$pss_behavior11.T1)
+describe(data$pss_behavior12.T1)
+describe(data$pss_behavior13.T1)
+describe(data$pss_behavior14.T1)
+
+###Compute subscale score and calculate cronbach alpha for subscale.
+pss_probbehav.T1<-data %>% 
+  dplyr::select(pss_behavior1.T1, pss_behavior2.T1, pss_behavior3.T1, pss_behavior4.T1, pss_behavior5.T1, pss_behavior6.T1,pss_behavior7.T1, pss_behavior8.T1, pss_behavior9.T1, pss_behavior10.T1, pss_behavior11.T1, pss_behavior12.T1, pss_behavior13.T1, pss_behavior14.T1)
+ltm::cronbach.alpha(pss_probbehav.T1)
+
+rm(pss_probbehav.T1)
+
+
+data %>% 
+  dplyr::select(PID.T1, pss_behavior1.T1, pss_behavior2.T1, pss_behavior3.T1, pss_behavior4.T1, pss_behavior5.T1, pss_behavior6.T1,pss_behavior7.T1, pss_behavior8.T1, pss_behavior9.T1, pss_behavior10.T1, pss_behavior11.T1, pss_behavior12.T1, pss_behavior13.T1, pss_behavior14.T1) %>% 
+  mutate(pss.probbehav = pss_behavior1.T1 + pss_behavior2.T1 + pss_behavior3.T1 + pss_behavior4.T1 + pss_behavior5.T1 + pss_behavior6.T1 + pss_behavior7.T1 + pss_behavior8.T1 + pss_behavior9.T1 + pss_behavior10.T1 + pss_behavior11.T1 + pss_behavior12.T1 + pss_behavior13.T1 + pss_behavior14.T1) %>% 
+  View()
+
+data<-data %>% 
+  mutate(pss_probbehav.T1 = pss_behavior1.T1 + pss_behavior2.T1 + pss_behavior3.T1 + pss_behavior4.T1 + pss_behavior5.T1 + pss_behavior6.T1 + pss_behavior7.T1 + pss_behavior8.T1 + pss_behavior9.T1 + pss_behavior10.T1 + pss_behavior11.T1 + pss_behavior12.T1 + pss_behavior13.T1 + pss_behavior14.T1)
+#End PSS - Problematic Behavior Subscale
+
+
+#Begin National Caregiving Association Caregiving Index
+#describe each variable first
+
+##start with ADLs
+data<- data %>% 
+  mutate(adl.bedchair.T1 = ifelse(grepl(1, adl_tasks.T1), 1, 0))
+data<- data %>% 
+  mutate(adl.dress.T1 = ifelse(grepl(2, adl_tasks.T1), 1, 0))
+data<- data %>% 
+  mutate(adl.toilet.T1 = ifelse(grepl(3, adl_tasks.T1), 1, 0))
+data<- data %>% 
+  mutate(adl.bath.T1 = ifelse(grepl(4, adl_tasks.T1), 1, 0))
+data<- data %>% 
+  mutate(adl.incontinence.T1 = ifelse(grepl(5, adl_tasks.T1), 1, 0))
+data<- data %>% 
+  mutate(adl.feed.T1 = ifelse(grepl(6, adl_tasks.T1), 1, 0))
+
+table(data$adl.bedchair.T1)
+table(data$adl.dress.T1)
+table(data$adl.toilet.T1)
+table(data$adl.bath.T1)
+table(data$adl.incontinence.T1)
+table(data$adl.feed.T1)
+
+##next do IADLs
+data<- data %>% 
+  mutate(iadl.medicine.T1 = ifelse(grepl(1, iadl_tasks.T1), 1, 0))
+data<- data %>% 
+  mutate(iadl.finances.T1 = ifelse(grepl(2, iadl_tasks.T1), 1, 0))
+data<- data %>% 
+  mutate(iadl.shop.T1 = ifelse(grepl(3, iadl_tasks.T1), 1, 0))
+data<- data %>% 
+  mutate(iadl.housework.T1 = ifelse(grepl(4, iadl_tasks.T1), 1, 0))
+data<- data %>% 
+  mutate(iadl.cook.T1 = ifelse(grepl(5, iadl_tasks.T1), 1, 0))
+data<- data %>% 
+  mutate(iadl.transportation.T1 = ifelse(grepl(6, iadl_tasks.T1), 1, 0))
+data<- data %>% 
+  mutate(iadl.services.T1 = ifelse(grepl(7, iadl_tasks.T1), 1, 0))
+data<- data %>% 
+  mutate(iadl.advocate.T1 = ifelse(grepl(8, iadl_tasks.T1), 1, 0))
+data<- data %>% 
+  mutate(iadl.monitor.T1 = ifelse(grepl(9, iadl_tasks.T1), 1, 0))
+data<- data %>% 
+  mutate(iadl.communicate.T1 = ifelse(grepl(10, iadl_tasks.T1), 1, 0))
+
+table(data$iadl.medicine.T1)
+table(data$iadl.finances.T1)
+table(data$iadl.shop.T1)
+table(data$iadl.housework.T1)
+table(data$iadl.cook.T1)
+table(data$iadl.transportation.T1)
+table(data$iadl.services.T1)
+table(data$iadl.advocate.T1)
+table(data$iadl.monitor.T1)
+table(data$iadl.communicate.T1)
+
+##Conditionally score ADLs depending on the age of the primary care recipient
+data<-data %>% 
+  mutate(adl.bedchair.r.T1 = ifelse(CR_age_r < 3, NA, adl.bedchair.T1))
+data<-data %>% 
+  mutate(adl.dress.r.T1 = ifelse(CR_age_r < 4, NA, adl.dress.T1))
+data<-data %>% 
+  mutate(adl.toilet.r.T1 = ifelse(CR_age_r < 4, NA, adl.toilet.T1))
+data<-data %>% 
+  mutate(adl.bath.r.T1 = ifelse(CR_age_r < 6, NA, adl.bath.T1))
+data<-data %>% 
+  mutate(adl.incontinence.r.T1 = ifelse(CR_age_r < 4, NA, adl.incontinence.T1))
+data<-data %>% 
+  mutate(adl.feed.r.T1 = ifelse(CR_age_r < 3, NA, adl.feed.T1))
+
+
+##Conditionally score IADLs depending on the age of the primary care recipient
+###No age condition for medicine
+###No age condition for finances
+data<-data %>% 
+  mutate(iadl.shop.r.T1 = ifelse(CR_age_r < 18, NA, iadl.shop.T1))
+data<-data %>% 
+  mutate(iadl.housework.r.T1 = ifelse(CR_age_r < 18, NA, iadl.housework.T1))
+data<-data %>% 
+  mutate(iadl.cook.r.T1 = ifelse(CR_age_r < 18, NA, iadl.cook.T1))
+data<-data %>% 
+  mutate(iadl.transportation.r.T1 = ifelse(CR_age_r < 18, NA, iadl.transportation.T1))
+###No age condition for services
+###No age condition for advocate
+###No age condition for monitor
+###No age condition for communication
+
+
+#Calculate number of ADLs for primary care recipient
+data %>%
+  dplyr::select(PID.T1, adl.bedchair.r.T1, adl.dress.r.T1, adl.toilet.r.T1, adl.bath.r.T1, adl.incontinence.r.T1, adl.feed.r.T1) %>% 
+  rowwise() %>% 
+  mutate(adl.T1 = sum(adl.bedchair.r.T1, adl.dress.r.T1, adl.toilet.r.T1, adl.bath.r.T1, adl.incontinence.r.T1, adl.feed.r.T1, na.rm = TRUE)) %>% 
+  view()
+
+data <- data %>% 
+   rowwise() %>% 
+  mutate(adl.T1 = sum(adl.bedchair.r.T1, adl.dress.r.T1, adl.toilet.r.T1, adl.bath.r.T1, adl.incontinence.r.T1, adl.feed.r.T1, na.rm = TRUE))
+
+#Calculate number of IADLs for primary care recipient
+data %>%
+  dplyr::select(PID.T1, iadl.medicine.T1, iadl.finances.T1, iadl.shop.r.T1, iadl.housework.r.T1, iadl.cook.r.T1, iadl.transportation.r.T1, iadl.services.T1, iadl.advocate.T1, iadl.monitor.T1, iadl.communicate.T1) %>% 
+  rowwise() %>% 
+  mutate(iadl.T1 = sum(iadl.medicine.T1, iadl.finances.T1, iadl.shop.r.T1, iadl.housework.r.T1, iadl.cook.r.T1, iadl.transportation.r.T1, iadl.services.T1, iadl.advocate.T1, iadl.monitor.T1, iadl.communicate.T1, na.rm = TRUE)) %>% 
+  view()
+
+data <- data %>% 
+   rowwise() %>% 
+  mutate(iadl.T1 = sum(iadl.medicine.T1, iadl.finances.T1, iadl.shop.r.T1, iadl.housework.r.T1, iadl.cook.r.T1, iadl.transportation.r.T1, iadl.services.T1, iadl.advocate.T1, iadl.monitor.T1, iadl.communicate.T1, na.rm = TRUE))
+
+#Medical tasks
+data$med_nursing_tasks.T1 <- car::recode(data$med_nursing_tasks.T1, '1 = "Yes"; 2 = "No"')
+#End National Caregiving Alliance ADL/IADL
+```
+
+
+Cognitive mechanisms
+```{r}
+#Dysfunctional Beliefs and Attitudes about Sleep (DBAS) Scale
+##16 items
+##All positively scored
+##Run descriptives on items
+describe(data$dbas_1.T1)
+describe(data$dbas_2.T1)
+describe(data$dbas_3.T1)
+describe(data$dbas_4.T1)
+describe(data$dbas_5.T1)
+describe(data$dbas_6.T1)
+describe(data$dbas_7.T1)
+describe(data$dbas_8.T1)
+describe(data$dbas_9.T1)
+describe(data$dbas_10.T1)
+describe(data$dbas_11.T1)
+describe(data$dbas_12.T1)
+describe(data$dbas_13.T1)
+describe(data$dbas_14.T1)
+describe(data$dbas_15.T1)
+describe(data$dbas_16.T1)
+
+describe(data$dbas1.T2u)
+describe(data$dbas2.T2u)
+describe(data$dbas3.T2u)
+describe(data$dbas4.T2u)
+describe(data$dbas5.T2u)
+describe(data$dbas6.T2u)
+describe(data$dbas7.T2u)
+describe(data$dbas8.T2u)
+describe(data$dbas9.T2u)
+describe(data$dbas10.T2u)
+describe(data$dbas11.T2u)
+describe(data$dbas12.T2u)
+describe(data$dbas13.T2u)
+describe(data$dbas14.T2u)
+describe(data$dbas15.T2u)
+describe(data$dbas16.T2u)
+
+##RECODE: Original manuscript scored 0-10, Qualtrics scoring is 1-11 (text options say 0-10)
+data$dbas1.T1<- car::recode(data$dbas_1.T1, '1 = 0; 3 = 1; 4 = 2; 5 = 3; 6 = 4; 7 = 5; 8 = 6; 12 = 7; 15 = 8; 16 = 9; 17 = 10')
+data<-data %>%
+  mutate(dbas_2.T1 = dbas_2.T1-1,
+            dbas_3.T1 = dbas_3.T1-1,
+            dbas_4.T1 = dbas_4.T1-1,
+            dbas_5.T1 = dbas_5.T1-1,
+            dbas_6.T1 = dbas_6.T1-1,
+            dbas_7.T1 = dbas_7.T1-1,
+            dbas_8.T1 = dbas_8.T1-1,
+            dbas_9.T1 = dbas_9.T1-1,
+            dbas_10.T1 = dbas_10.T1-1,
+            dbas_11.T1 = dbas_11.T1-1,
+            dbas_12.T1 = dbas_12.T1-1,
+            dbas_13.T1 = dbas_13.T1-1,
+            dbas_14.T1 = dbas_14.T1-1,
+            dbas_15.T1 = dbas_15.T1-1,
+            dbas_16.T1 = dbas_16.T1-1)
+
+data$dbas_1.T2u<- car::recode(data$dbas1.T2u, '1 = 0; 3 = 1; 4 = 2; 5 = 3; 6 = 4; 7 = 5; 8 = 6; 12 = 7; 15 = 8; 16 = 9; 17 = 10')
+data<-data %>%
+  mutate(dbas_2.T2u = dbas2.T2u-1,
+            dbas_3.T2u = dbas3.T2u-1,
+            dbas_4.T2u = dbas4.T2u-1,
+            dbas_5.T2u = dbas5.T2u-1,
+            dbas_6.T2u = dbas6.T2u-1,
+            dbas_7.T2u = dbas7.T2u-1,
+            dbas_8.T2u = dbas8.T2u-1,
+            dbas_9.T2u = dbas9.T2u-1,
+            dbas_10.T2u = dbas10.T2u-1,
+            dbas_11.T2u = dbas11.T2u-1,
+            dbas_12.T2u = dbas12.T2u-1,
+            dbas_13.T2u = dbas13.T2u-1,
+            dbas_14.T2u = dbas14.T2u-1,
+            dbas_15.T2u = dbas15.T2u-1,
+            dbas_16.T2u = dbas16.T2u-1)
+
+##Rerun descriptives on recoded items
+describe(data$dbas_1.T1)
+describe(data$dbas_2.T1)
+describe(data$dbas_3.T1)
+describe(data$dbas_4.T1)
+describe(data$dbas_5.T1)
+describe(data$dbas_6.T1)
+describe(data$dbas_7.T1)
+describe(data$dbas_8.T1)
+describe(data$dbas_9.T1)
+describe(data$dbas_10.T1)
+describe(data$dbas_11.T1)
+describe(data$dbas_12.T1)
+describe(data$dbas_13.T1)
+describe(data$dbas_14.T1)
+describe(data$dbas_15.T1)
+describe(data$dbas_16.T1)
+
+describe(data$dbas_1.T2u)
+describe(data$dbas_2.T2u)
+describe(data$dbas_3.T2u)
+describe(data$dbas_4.T2u)
+describe(data$dbas_5.T2u)
+describe(data$dbas_6.T2u)
+describe(data$dbas_7.T2u)
+describe(data$dbas_8.T2u)
+describe(data$dbas_9.T2u)
+describe(data$dbas_10.T2u)
+describe(data$dbas_11.T2u)
+describe(data$dbas_12.T2u)
+describe(data$dbas_13.T2u)
+describe(data$dbas_14.T2u)
+describe(data$dbas_15.T2u)
+describe(data$dbas_16.T2u)
+
+##Calculate Cronbach alpha and compute scale
+####Scale score calculated by totaling points
+DBAS.T1<- data %>% 
+  dplyr::select(dbas_1.T1:dbas_16.T1)
+ltm::cronbach.alpha(DBAS.T1)
+
+DBAS.T2u<- data %>% 
+  dplyr::select(dbas_1.T2u:dbas_16.T2u)
+ltm::cronbach.alpha(DBAS.T2u, na.rm = TRUE)
+
+rm(DBAS.T1, DBAS.T2u)
+
+
+data %>%
+  dplyr::select(PID.T1, dbas_1.T1:dbas_16.T1) %>%
+  mutate(dbas.T1 = dbas_1.T1 + dbas_2.T1 + dbas_3.T1 + dbas_4.T1 + dbas_5.T1 + dbas_6.T1 + dbas_7.T1 + dbas_8.T1 + dbas_9.T1 + dbas_10.T1 + dbas_11.T1 + dbas_12.T1 + dbas_13.T1 + dbas_14.T1 + dbas_15.T1 + dbas_16.T1) %>% 
+  view()
+
+data<- data %>%
+  mutate(dbas.T1 = dbas_1.T1 + dbas_2.T1 + dbas_3.T1 + dbas_4.T1 + dbas_5.T1 + dbas_6.T1 + dbas_7.T1 + dbas_8.T1 + dbas_9.T1 + dbas_10.T1 + dbas_11.T1 + dbas_12.T1 + dbas_13.T1 + dbas_14.T1 + dbas_15.T1 + dbas_16.T1)
+
+
+data %>%
+  dplyr::select(PID.T1, dbas_1.T2u:dbas_16.T2u) %>%
+  mutate(dbas.T2u = dbas_1.T2u + dbas_2.T2u + dbas_3.T2u + dbas_4.T2u + dbas_5.T2u + dbas_6.T2u + dbas_7.T2u + dbas_8.T2u + dbas_9.T2u + dbas_10.T2u + dbas_11.T2u + dbas_12.T2u + dbas_13.T2u + dbas_14.T2u + dbas_15.T2u + dbas_16.T2u) %>% 
+  view()
+
+data<- data %>%
+  mutate(dbas.T2u = dbas_1.T2u + dbas_2.T2u + dbas_3.T2u + dbas_4.T2u + dbas_5.T2u + dbas_6.T2u + dbas_7.T2u + dbas_8.T2u + dbas_9.T2u + dbas_10.T2u + dbas_11.T2u + dbas_12.T2u + dbas_13.T2u + dbas_14.T2u + dbas_15.T2u + dbas_16.T2u)
+#End DBAS
+
+
+#Sleep Locus of Control Scale
+##8 items to create 2 subscales – internal locus and external/chance locus
+##All positively scored
+##Begin Internal Locus of Sleep Control Subscale
+###5 items – Qualtrics and manuscript items #1, 2, 5, 7, 8
+###Run descriptives on items
+describe(data$sloc1.T1)
+describe(data$sloc2.T1)
+describe(data$sloc5.T1)
+describe(data$sloc7.T1)
+describe(data$sloc8.T1)
+
+describe(data$sloc1.T2u)
+describe(data$sloc2.T2u)
+describe(data$sloc5.T2u)
+describe(data$sloc7.T2u)
+describe(data$sloc8.T2u)
+
+###No recoding necessary – manuscript and Qualtrics scoring match
+###Calculate Cronbach alpha and compute subscale
+####Scale score calculated by totaling point, per original manuscript. 
+sloc_int.T1 <-data %>%
+  dplyr::select(sloc1.T1, sloc2.T1, sloc5.T1, sloc7.T1, sloc8.T1)
+ltm::cronbach.alpha(sloc_int.T1)
+
+sloc_int.T2u <-data %>%
+  dplyr::select(sloc1.T2u, sloc2.T2u, sloc5.T2u, sloc7.T2u, sloc8.T2u)
+ltm::cronbach.alpha(sloc_int.T2u, na.rm = TRUE)
+
+rm(sloc_int.T1, sloc_int.T2u)
+
+
+data %>% 
+  dplyr::select(PID.T1, sloc1.T1, sloc2.T1, sloc5.T1, sloc7.T1, sloc8.T1) %>% 
+  mutate(sloc_int.T1 = sloc1.T1 + sloc2.T1 + sloc5.T1 + sloc7.T1 + sloc8.T1) %>% 
+  View()
+
+data <- data %>% 
+  mutate(sloc_int.T1 = sloc1.T1 + sloc2.T1 + sloc5.T1 + sloc7.T1 + sloc8.T1)
+
+
+data %>% 
+  dplyr::select(PID.T1, sloc1.T2u, sloc2.T2u, sloc5.T2u, sloc7.T2u, sloc8.T2u) %>% 
+  mutate(sloc_int.T2u = sloc1.T2u + sloc2.T2u + sloc5.T2u + sloc7.T2u + sloc8.T2u) %>% 
+  View()
+
+data <- data %>% 
+  mutate(sloc_int.T2u = sloc1.T2u + sloc2.T2u + sloc5.T2u + sloc7.T2u + sloc8.T2u)
+##End Internal SLOC Subscale
+
+##Begin External/Chance SLOC Subscale
+###3 items – manuscript and Qualtrics items #3, 4, 6
+###Run descriptives on items
+describe(data$sloc3.T1)
+describe(data$sloc4.T1)
+describe(data$sloc6.T1)
+
+describe(data$sloc3.T2u)
+describe(data$sloc4.T2u)
+describe(data$sloc6.T2u)
+
+###No recoding necessary – manuscript and Qualtrics scoring match
+###Calculate Cronbach alpha and compute subscale
+####Scale score calculated by totaling point, per original manuscript. BeSSI Syntax averaged, not sure what KS prefers
+sloc_ext.T1 <-data %>%
+  dplyr::select(sloc3.T1, sloc4.T1, sloc6.T1)
+ltm::cronbach.alpha(sloc_ext.T1, na.rm = TRUE)
+
+sloc_ext.T2u <-data %>%
+  dplyr::select(sloc3.T2u, sloc4.T2u, sloc6.T2u)
+ltm::cronbach.alpha(sloc_ext.T2u, na.rm = TRUE)
+#poor reliability: alpha = .55
+
+rm(sloc_ext.T1, sloc_ext.T2u)
+
+
+data %>% 
+  dplyr::select(PID.T1, sloc3.T1, sloc4.T1, sloc6.T1) %>% 
+  mutate(sloc_ext.T1 = sloc3.T1 + sloc4.T1 + sloc6.T1) %>% 
+  View()
+
+data <- data %>% 
+  mutate(sloc_ext.T1 = sloc3.T1 + sloc4.T1 + sloc6.T1)
+#1 NA SLOC_EXT.T1 - missing 1 item
+
+
+data %>% 
+  dplyr::select(PID.T1, sloc3.T2u, sloc4.T2u, sloc6.T2u) %>% 
+  mutate(sloc_ext.T2u = sloc3.T2u + sloc4.T2u + sloc6.T2u) %>% 
+  View()
+
+data <- data %>% 
+  mutate(sloc_ext.T2u = sloc3.T2u + sloc4.T2u + sloc6.T2u)
+#1 NA SLOC_EXT.T2u - missing 1 item
+##End External/Chance SLOC Subscale
+#End SLOC Scale
+```
+
+
+Other preliminary efficacy measures
+```{r}
+#ISI- Insomnia Severity Index - 2
+##2 items
+##All positively scored
+##Run descriptives on items
+describe(data$isi_2.T1)
+describe(data$isi_3.T1)
+
+describe(data$isi1.T2u)
+describe(data$isi2.T2u)
+
+describe(data$isi1.T2n)
+describe(data$isi2.T2n)
+
+##No recoding necessary - scoring in Qualtrics matches original manuscript
+##Calculate cronbach alpha
+ISI.T1<- data %>% 
+  dplyr::select(isi_2.T1, isi_3.T1)
+ltm::cronbach.alpha(ISI.T1)
+#low reliability - alpha = .50
+
+ISI.T2u<- data %>% 
+  dplyr::select(isi1.T2u, isi2.T2u)
+ltm::cronbach.alpha(ISI.T2u, na.rm = TRUE)
+#low reliability - alpha = .42
+
+ISI.T2n<- data %>% 
+  dplyr::select(isi1.T2n, isi2.T2n)
+ltm::cronbach.alpha(ISI.T2n, na.rm = TRUE)
+
+rm(ISI.T1, ISI.T2u, ISI.T2n)
+
+
+##Compute scale
+data %>%
+  dplyr::select(PID.T1, isi_2.T1, isi_3.T1) %>%
+  mutate(isi.T1 = isi_2.T1 + isi_3.T1) %>% 
+  view()
+
+data<- data %>%
+  mutate(isi.T1 = isi_2.T1 + isi_3.T1)
+
+
+data %>%
+  dplyr::select(PID.T1, isi1.T2u, isi2.T2u) %>%
+  mutate(isi.T2u = isi1.T2u + isi2.T2u) %>% 
+  view()
+
+data<- data %>%
+  mutate(isi.T2u = isi1.T2u + isi2.T2u)
+
+
+data %>%
+  dplyr::select(PID.T1, isi1.T2n, isi2.T2n) %>%
+  mutate(isi.T2n = isi1.T2n + isi2.T2n) %>% 
+  view()
+
+data<- data %>%
+  mutate(isi.T2n = isi1.T2n + isi2.T2n)
+#End ISI-2 Scale
+
+
+#Sleep Diary Metrics
+##SEE SLEEP DIARY SYNTAX FOR COMPUTATION OF SOL, WASO, NO. AWAKENINGS, SLEEP QUALITY, AND TST
+#End Sleep Diary Metrics
+
+
+#PROMIS Global Physical Health 2a
+#Internal reliability
+
+promis_ph.T1<- data %>% 
+  dplyr::select(promis_physhealth1.T1, promis_physhealth2.T1)
+ltm::cronbach.alpha(promis_ph.T1)
+
+promis_ph.T2u<- data %>% 
+  dplyr::select(promis.ph1.T2u, promis.ph2.T2u)
+ltm::cronbach.alpha(promis_ph.T2u, na.rm=TRUE)
+
+promis_ph.T2n<- data %>% 
+  dplyr::select(promis.ph1.T2n, promis.ph2.T2n)
+ltm::cronbach.alpha(promis_ph.T2n, na.rm=TRUE)
+
+rm(promis_ph.T1, promis_ph.T2n, promis_ph.T2u)
+
+##2 items, sent to HealthMeasures.net scoring service for scoring – no included syntax
+promis_ph.T1<- read.csv("PROMIS Global Physical 2a Scores_T1.csv")
+data<- merge(data, promis_ph.T1, by.x = "PID.T1", by.y = "PID.T1", all.x = TRUE)
+
+promis_ph.T2u<- read.csv("PROMIS Global Physical 2a Scores_T2u.csv")
+data<- merge(data, promis_ph.T2u, by.x = "PID.T1", by.y = "PID.T1", all.x = TRUE)
+
+promis_ph.T2n<- read.csv("PROMIS Global Physical 2a Scores_T2n.csv")
+data<- merge(data, promis_ph.T2n, by.x = "PID.T1", by.y = "PID.T1", all.x = TRUE)
+
+rm(promis_ph.T1, promis_ph.T2u, promis_ph.T2n)
+#End PROMIS
+
+
+#Patient Health Questionnaire (PHQ) – 4 item
+##Used 8-item PHQ in BeSSI 
+##4 items
+##All positively scored
+## For scores >=3, items 1-2 can suggest anxiety, items 3-4 can suggest depression
+##Run descriptives on original items
+describe(data$phq4_1.T1)
+describe(data$phq4_2.T1)
+describe(data$phq4_3.T1)
+describe(data$phq4_4.T1)
+
+describe(data$phq1.T2u)
+describe(data$phq2.T2u)
+describe(data$phq3.T2u)
+describe(data$phq4.T2u)
+
+describe(data$phq1.T2n)
+describe(data$phq2.T2n)
+describe(data$phq3.T2n)
+describe(data$phq4.T2n)
+
+##RECODE: Original manuscript scored items 0-3, Qualtrics scored 1-4
+data$phq1.T1<-car::recode(data$phq4_1.T1,'1=0; 2=1; 3=2; 4=3')
+data$phq2.T1<-car::recode(data$phq4_2.T1,'1=0; 2=1; 3=2; 4=3')
+data$phq3.T1<-car::recode(data$phq4_3.T1,'1=0; 2=1; 3=2; 4=3')
+data$phq4.T1<-car::recode(data$phq4_4.T1,'1=0; 2=1; 3=2; 4=3')
+
+data$phq1.T2u<-car::recode(data$phq1.T2u,'1=0; 2=1; 3=2; 4=3')
+data$phq2.T2u<-car::recode(data$phq2.T2u,'1=0; 2=1; 3=2; 4=3')
+data$phq3.T2u<-car::recode(data$phq3.T2u,'1=0; 2=1; 3=2; 4=3')
+data$phq4.T2u<-car::recode(data$phq4.T2u,'1=0; 2=1; 3=2; 4=3')
+
+data$phq1.T2n<-car::recode(data$phq1.T2n,'1=0; 2=1; 3=2; 4=3')
+data$phq2.T2n<-car::recode(data$phq2.T2n,'1=0; 2=1; 3=2; 4=3')
+data$phq3.T2n<-car::recode(data$phq3.T2n,'1=0; 2=1; 3=2; 4=3')
+data$phq4.T2n<-car::recode(data$phq4.T2n,'1=0; 2=1; 3=2; 4=3')
+
+##Rerun descriptives on recoded items
+describe(data$phq1.T1)
+describe(data$phq2.T1)
+describe(data$phq3.T1)
+describe(data$phq4.T1)
+
+describe(data$phq1.T2u)
+describe(data$phq2.T2u)
+describe(data$phq3.T2u)
+describe(data$phq4.T2u)
+
+describe(data$phq1.T2n)
+describe(data$phq2.T2n)
+describe(data$phq3.T2n)
+describe(data$phq4.T2n)
+
+##Calculate Cronbach alpha
+phq_4.T1 <-data %>%
+  dplyr::select(phq1.T1, phq2.T1, phq3.T1, phq4.T1)
+ltm::cronbach.alpha(phq_4.T1)
+
+phq_4.T2u <-data %>%
+  dplyr::select(phq1.T2u, phq2.T2u, phq3.T2u, phq4.T2u)
+ltm::cronbach.alpha(phq_4.T2u, na.rm = TRUE)
+
+phq_4.T2n <-data %>%
+  dplyr::select(phq1.T2n, phq2.T2n, phq3.T2n, phq4.T2n)
+ltm::cronbach.alpha(phq_4.T2n, na.rm = TRUE)
+
+rm(phq_4.T1, phq_4.T2u, phq_4.T2n)
+
+
+##Compute PHQ-4 scale and subscales for depression/anxiety
+###Total scale
+data %>% 
+  dplyr::select(PID.T1, phq1.T1, phq2.T1, phq3.T1, phq4.T1) %>% 
+  mutate(phq_4.T1 = phq1.T1 + phq2.T1 + phq3.T1 + phq4.T1) %>% 
+  View()
+
+data <- data %>% 
+  mutate(phq_4.T1 = phq1.T1 + phq2.T1 + phq3.T1 + phq4.T1)
+
+
+data %>% 
+  dplyr::select(PID.T1, phq1.T2u, phq2.T2u, phq3.T2u, phq4.T2u) %>% 
+  mutate(phq_4.T2u = phq1.T2u + phq2.T2u + phq3.T2u + phq4.T2u) %>% 
+  View()
+
+data <- data %>% 
+  mutate(phq_4.T2u = phq1.T2u + phq2.T2u + phq3.T2u + phq4.T2u)
+
+
+data %>% 
+  dplyr::select(PID.T1, phq1.T2n, phq2.T2n, phq3.T2n, phq4.T2n) %>% 
+  mutate(phq_4.T2n = phq1.T2n + phq2.T2n + phq3.T2n + phq4.T2n) %>% 
+  View()
+
+data <- data %>% 
+  mutate(phq_4.T2n = phq1.T2n + phq2.T2n + phq3.T2n + phq4.T2n)
+
+
+###Anxiety items
+phq.anx.T1 <-data %>%
+  dplyr::select(phq1.T1, phq2.T1)
+ltm::cronbach.alpha(phq.anx.T1)
+
+phq.anx.T2u <-data %>%
+  dplyr::select(phq1.T2u, phq2.T2u)
+ltm::cronbach.alpha(phq.anx.T2u, na.rm = TRUE)
+
+phq.anx.T2n <-data %>%
+  dplyr::select(phq1.T2n, phq2.T2n)
+ltm::cronbach.alpha(phq.anx.T2n, na.rm = TRUE)
+
+rm(phq.anx.T1, phq.anx.T2u, phq.anx.T2n)
+
+
+data %>% 
+  dplyr::select(PID.T1, phq1.T1, phq2.T1) %>% 
+  mutate(phq.anx.T1 = phq1.T1 + phq2.T1) %>% 
+  View()
+
+data <- data %>% 
+  mutate(phq.anx.T1 = phq1.T1 + phq2.T1)
+
+
+data %>% 
+  dplyr::select(PID.T1, phq1.T2u, phq2.T2u) %>% 
+  mutate(phq.anx.T2u = phq1.T2u + phq2.T2u) %>% 
+  View()
+
+data <- data %>% 
+  mutate(phq.anx.T2u = phq1.T2u + phq2.T2u)
+
+
+data %>% 
+  dplyr::select(PID.T1, phq1.T2n, phq2.T2n) %>% 
+  mutate(phq.anx.T2n = phq1.T2n + phq2.T2n) %>% 
+  View()
+
+data <- data %>% 
+  mutate(phq.anx.T2n = phq1.T2n + phq2.T2n)
+
+
+###Depression items
+phq.dep.T1 <-data %>%
+  dplyr::select(phq3.T1, phq4.T1)
+ltm::cronbach.alpha(phq.dep.T1)
+
+phq.dep.T2u <-data %>%
+  dplyr::select(phq3.T2u, phq4.T2u)
+ltm::cronbach.alpha(phq.dep.T2u, na.rm = TRUE)
+
+phq.dep.T2n <-data %>%
+  dplyr::select(phq3.T2n, phq4.T2n)
+ltm::cronbach.alpha(phq.dep.T2n, na.rm = TRUE)
+
+rm(phq.dep.T1, phq.dep.T2u, phq.dep.T2n)
+
+
+data %>% 
+  dplyr::select(PID.T1, phq3.T1, phq4.T1) %>% 
+  mutate(phq.dep.T1 = phq3.T1 + phq4.T1) %>% 
+  View()
+
+data <- data %>% 
+  mutate(phq.dep.T1 = phq3.T1 + phq4.T1)
+
+
+data %>% 
+  dplyr::select(PID.T1, phq3.T2u, phq4.T2u) %>% 
+  mutate(phq.dep.T2u = phq3.T2u + phq4.T2u) %>% 
+  View()
+
+data <- data %>% 
+  mutate(phq.dep.T2u = phq3.T2u + phq4.T2u)
+
+
+data %>% 
+  dplyr::select(PID.T1, phq3.T2n, phq4.T2n) %>% 
+  mutate(phq.dep.T2n = phq3.T2n + phq4.T2n) %>% 
+  View()
+
+data <- data %>% 
+  mutate(phq.dep.T2n = phq3.T2n + phq4.T2n)
+#End PHQ-4 Scale
+```
+
+
+##Add Sleep Diary Outcomes
+```{r}
+diaryfinal_wide<-read.csv("Z:/Research/Psychiatry and NB Sciences/PSYCH_eHealth/Kelly's Data/00. NCATS/Data & Analyses/Quantitative - Sleep diaries/Final_Assessment_Diary_Outcomes_Wide.csv")
+
+data_all<- merge(data, diaryfinal_wide, by.x = "PID.T1", by.y = "PID", all = TRUE)
+```
+
+
+##Save data
+```{r}
+#write.csv(data_all, "Z:/Research/Psychiatry and NB Sciences/PSYCH_eHealth/Kelly's Data/00. NCATS/Data & Analyses/SHUTi CARE_all data_final.csv", row.names = FALSE)
+```
+
+
